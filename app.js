@@ -48,12 +48,15 @@ app.use((req, res, next) => {
 
 /* Initialize Error Handling */
 app.use((err, req, res, next) => {
-  if (err.statusCode === 404) {
-    return utilsHelper.sendResponse(res, 404, false, null, err, null, null);
-  } else {
-    console.log("ERROR", err.message);
-    return utilsHelper.sendResponse(res, 500, false, null, err, null, null);
-  }
+  console.log("ERROR", err.message);
+  return utilsHelper.sendResponse(
+    res,
+    err.statusCode ? err.statusCode : 500,
+    false,
+    null,
+    [{ message: err.message }],
+    null
+  );
 });
 
 module.exports = app;
