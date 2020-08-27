@@ -1,5 +1,6 @@
 const utilsHelper = require("../helpers/utils.helper");
 const Blog = require("../models/blog");
+const blog = require("../models/blog");
 const blogController = {};
 
 blogController.getBlogs = async (req, res, next) => {
@@ -24,6 +25,17 @@ blogController.getBlogs = async (req, res, next) => {
       null,
       ""
     );
+  } catch (error) {
+    next(error);
+  }
+};
+
+blogController.getSingleBlog = async (req, res, next) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) return next(new Error("Blog not found"));
+
+    return utilsHelper.sendResponse(res, 200, true, blog, null, null);
   } catch (error) {
     next(error);
   }
