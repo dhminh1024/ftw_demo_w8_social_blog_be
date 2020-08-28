@@ -41,4 +41,28 @@ blogController.getSingleBlog = async (req, res, next) => {
   }
 };
 
+blogController.createNewBlog = async (req, res, next) => {
+  try {
+    const author = req.userId;
+    const { title, content } = req.body;
+
+    const blog = await Blog.create({
+      title,
+      content,
+      author,
+    });
+
+    return utilsHelper.sendResponse(
+      res,
+      200,
+      true,
+      blog,
+      null,
+      "Create new blog successful"
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = blogController;
