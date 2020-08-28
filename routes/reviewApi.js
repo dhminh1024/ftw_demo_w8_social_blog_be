@@ -1,48 +1,41 @@
 const express = require("express");
 const router = express.Router();
-const blogController = require("../controllers/blogController");
+const reviewController = require("../controllers/reviewController");
 const validators = require("../middlewares/validators");
 const authMiddleware = require("../middlewares/authentication");
 const { body, param } = require("express-validator");
 
 /**
- * @route GET api/blogs?page=1&limit=10
- * @description Get blogs with pagination
- * @access Public
- */
-router.get("/", blogController.getBlogs);
-
-/**
- * @route GET api/blogs/:id
- * @description Get a single blog
+ * @route GET api/reviews/blogs/:id?page=1&limit=10
+ * @description Get reviews of a blog with pagination
  * @access Public
  */
 router.get(
-  "/:id",
+  "/blogs/:id",
   validators.validate([
     param("id").exists().isString().custom(validators.checkObjectId),
   ]),
-  blogController.getSingleBlog
+  reviewController.getReviewsOfBlog
 );
 
 /**
- * @route POST api/blogs
- * @description Create a new blog
+ * @route POST api/reviews/blogs/:id
+ * @description Create a new review for a blog
  * @access Login required
  */
 router.post(
-  "/",
+  "/blogs/:id",
   authMiddleware.loginRequired,
   validators.validate([
-    body("title", "Missing title").exists().notEmpty(),
+    param("id").exists().isString().custom(validators.checkObjectId),
     body("content", "Missing content").exists().notEmpty(),
   ]),
-  blogController.createNewBlog
+  reviewController.createNewReview
 );
 
 /**
- * @route PUT api/blogs/:id
- * @description Update a blog
+ * @route PUT api/reviews/:id
+ * @description Update a review
  * @access Login required
  */
 router.put(
@@ -50,15 +43,14 @@ router.put(
   authMiddleware.loginRequired,
   validators.validate([
     param("id").exists().isString().custom(validators.checkObjectId),
-    body("title", "Missing title").exists().notEmpty(),
     body("content", "Missing content").exists().notEmpty(),
   ]),
-  blogController.updateSingleBlog
+  reviewController.updateSingleReview
 );
 
 /**
- * @route DELETE api/blogs/:id
- * @description Delete a blog
+ * @route DELETE api/reviews/:id
+ * @description Delete a review
  * @access Login required
  */
 router.delete(
@@ -67,7 +59,7 @@ router.delete(
   validators.validate([
     param("id").exists().isString().custom(validators.checkObjectId),
   ]),
-  blogController.deleteSingleBlog
+  reviewController.deleteSingleReview
 );
 
 module.exports = router;

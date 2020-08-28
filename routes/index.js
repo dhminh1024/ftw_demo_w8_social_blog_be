@@ -13,4 +13,8 @@ router.use("/auth", authApi);
 const blogApi = require("./blogApi");
 router.use("/blogs", blogApi);
 
+// reviewApi
+const reviewApi = require("./reviewApi");
+router.use("/reviews", reviewApi);
+
 module.exports = router;
