@@ -17,4 +17,8 @@ router.use("/blogs", blogApi);
 const reviewApi = require("./reviewApi");
 router.use("/reviews", reviewApi);
 
+// reactionApi
+const reactionApi = require("./reactionApi");
+router.use("/reactions", reactionApi);
+
 module.exports = router;
