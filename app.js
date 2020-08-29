@@ -6,6 +6,7 @@ const utilsHelper = require("./helpers/utils.helper");
 const cors = require("cors");
 require("dotenv").config();
 const mongoose = require("mongoose");
+mongoose.plugin(require("./models/plugins/modifiedAt"));
 const mongoURI = process.env.MONGODB_URI;
 
 var indexRouter = require("./routes/index");
@@ -18,7 +19,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 /* DB Connections */
-mongoose.plugin(require("./models/plugins/modifiedAt"));
+
 mongoose
   .connect(mongoURI, {
     // some options to deal with deprecated warning
@@ -48,7 +49,7 @@ app.use((req, res, next) => {
 
 /* Initialize Error Handling */
 app.use((err, req, res, next) => {
-  console.log("ERROR", err.message);
+  console.log("ERROR", err);
   return utilsHelper.sendResponse(
     res,
     err.statusCode ? err.statusCode : 500,

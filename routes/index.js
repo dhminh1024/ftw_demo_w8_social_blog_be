@@ -21,4 +21,8 @@ router.use("/reviews", reviewApi);
 const reactionApi = require("./reactionApi");
 router.use("/reactions", reactionApi);
 
+// friendshipApi
+const friendshipApi = require("./friendshipApi");
+router.use("/friends", friendshipApi);
+
 module.exports = router;

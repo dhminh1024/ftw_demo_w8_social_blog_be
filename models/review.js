@@ -24,4 +24,18 @@ reviewSchema.post("save", function () {
   this.constructor.calculateReviews(this.blog);
 });
 
-module.exports = mongoose.model("Review", reviewSchema);
+// Neither findByIdAndUpdate norfindByIdAndDelete have access to document middleware.
+// They only get access to query middleware
+// Inside this hook, this will point to the current query, not the current review.
+// Therefore, to access the review, we’ll need to execute the query
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  this.doc = await this.findOne();
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function (next) {
+  await this.doc.constructor.calculateReviews(this.doc.blog);
+});
+
+const Review = mongoose.model("Review", reviewSchema);
+module.exports = Review;

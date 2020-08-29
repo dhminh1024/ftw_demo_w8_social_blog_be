@@ -15,7 +15,7 @@ authMiddleware.loginRequired = (req, res, next) => {
           return next(new Error("Token is invalid"));
         }
       }
-      console.log(payload);
+      // console.log(payload);
       req.userId = payload._id;
     });
     next();
