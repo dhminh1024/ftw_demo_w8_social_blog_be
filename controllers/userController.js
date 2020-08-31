@@ -1,17 +1,16 @@
 const utilsHelper = require("../helpers/utils.helper");
 const User = require("../models/user");
 const Friendship = require("../models/friendship");
-const bcrypt = require("bcryptjs");
-const userController = {};
+const jwt = require("jsonwebtoken");
 
+const userController = {};
 userController.register = async (req, res, next) => {
   try {
     let { name, email, password } = req.body;
     let user = await User.findOne({ email });
     if (user) return next(new Error("User already exists"));
 
-    const salt = await bcrypt.genSalt(10);
-    password = await bcrypt.hash(password, salt);
+
     user = await User.create({
       name,
       email,
@@ -70,14 +69,12 @@ userController.sendFriendRequest = async (req, res, next) => {
     } else {
       switch (friendship.status) {
         case "requesting":
-          return next(new Error("The request has been sent"));
-          break;
+          return next(new Error("The request has already been sent"));
         case "accepted":
           return next(new Error("Users are already friend"));
-          break;
-        case "accepted":
         case "decline":
         case "cancel":
+          // in case declined or cancelled, we're changing it to requesting
           friendship.status = "requesting";
           await friendship.save();
           return utilsHelper.sendResponse(
@@ -88,7 +85,6 @@ userController.sendFriendRequest = async (req, res, next) => {
             null,
             "Request has ben sent"
           );
-          break;
         default:
           break;
       }
@@ -108,7 +104,7 @@ userController.acceptFriendRequest = async (req, res, next) => {
       status: "requesting",
     });
     if (!friendship) return next(new Error("Friend Request not found"));
-
+    // else
     friendship.status = "accepted";
     await friendship.save();
     return utilsHelper.sendResponse(
@@ -185,6 +181,7 @@ userController.getFriendList = async (req, res, next) => {
     })
       .populate("from")
       .populate("to");
+      
     friendList = friendList.map((friendship) => {
       const friend = {};
       friend.acceptedAt = friendship.updatedAt;
@@ -255,4 +252,81 @@ userController.removeFriendship = async (req, res, next) => {
   }
 };
 
+userController.forgetPassword = async (req,res,next) => {
+  try {
+    // get email from request 
+    const email = req.params.email
+    if(!email){
+      return next(new Error("Email is required"))
+    }
+    // get user doc from database
+    const user = await User.findOne({ email })
+    if(!user){
+       return utilsHelper.sendResponse(
+        res,
+        200,
+        true,
+        null,
+        null,
+        "You will receive an email in your registered email address"
+      );  
+    }
+    // generate a jwt (include userID)
+    const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET_KEY, {expiresIn: "1h"});
+    
+    // SEND EMAIL
+    const API_KEY = process.env.MAILGUN_API;
+    const DOMAIN = process.env.MAILGUN_DOMAIN;
+    const mailgun = require("mailgun-js")({apiKey: API_KEY, domain: DOMAIN});
+    const data = {
+      from: 'khoa <damanhkhoa@gmail.com>',
+      to: user.email,
+      subject: 'Reset password confirmation',
+      html: `click <a href="http://frontendURL/email/${token}">here</a> to reset password`
+    };
+    console.log(token)
+    mailgun.messages().send(data, (error, body) => {
+      console.log(body);
+      return next(body)
+    });
+    
+    // send email with token to user email
+    return utilsHelper.sendResponse(
+      res,
+      200,
+      true,
+      null,
+      null,
+      "You will receive an email in your registered email address"
+    );  
+} catch (error) {
+    next(error);
+  }
+}
+
+
+userController.resetPassword = async(req,res,next) => {
+  try {
+    let { token, password } = req.body;
+    if(!token || !password) return next(new Error("token and password are required"));
+
+    // verify token;
+    const payload = jwt.verify(token, process.env.JWT_SECRET_KEY)
+    if(!payload){
+      return next(new Error("invalid token"));
+    }
+    // payload._id = userid
+    //  update password;
+
+
+    const user = await User.findById(payload._id);
+    user.password = password;
+    await user.save()
+
+
+    res.send(user)
+  } catch (error) {
+    return next(error)
+  }
+}
 module.exports = userController;

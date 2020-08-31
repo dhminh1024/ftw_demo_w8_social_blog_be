@@ -20,6 +20,15 @@ router.post(
   userController.register
 );
 
+
+router.get("/forget/:email", userController.forgetPassword)
+
+router.put("/reset-password", userController.resetPassword)
+
+
+
+
+=======
 /**
  * @route GET api/users/me
  * @description Get current user info
