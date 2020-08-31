@@ -8,12 +8,12 @@ reviewController.createNewReview = async (req, res, next) => {
     const blogId = req.params.id;
     const { content } = req.body;
 
-    const review = await Review.create({
+    let review = await Review.create({
       user: userId,
       blog: blogId,
       content,
     });
-
+    review = await review.populate("user").execPopulate();
     return utilsHelper.sendResponse(
       res,
       200,

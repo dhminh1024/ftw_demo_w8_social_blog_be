@@ -15,7 +15,7 @@ friendshipSchema.statics.calculateFriendCount = async function (userId) {
   const friendCount = await this.find({
     $or: [{ from: userId }, { to: userId }],
     status: "accepted",
-  }).count();
+  }).countDocuments();
   await User.findByIdAndUpdate(userId, { friendCount: friendCount });
 };
 

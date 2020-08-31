@@ -9,6 +9,9 @@ const mongoose = require("mongoose");
 mongoose.plugin(require("./models/plugins/modifiedAt"));
 const mongoURI = process.env.MONGODB_URI;
 
+const multer = require("multer");
+const upload = multer();
+
 var indexRouter = require("./routes/index");
 
 var app = express();
@@ -16,6 +19,7 @@ var app = express();
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(upload.array());
 app.use(cookieParser());
 
 /* DB Connections */
@@ -49,14 +53,14 @@ app.use((req, res, next) => {
 
 /* Initialize Error Handling */
 app.use((err, req, res, next) => {
-  console.log("ERROR", err);
+  console.log("ERROR", err.message);
   return utilsHelper.sendResponse(
     res,
     err.statusCode ? err.statusCode : 500,
     false,
     null,
-    [{ message: err.message }],
-    null
+    { message: err.message },
+    err.message
   );
 });
 

@@ -28,5 +28,12 @@ router.put("/reset-password", userController.resetPassword)
 
 
 
+=======
+/**
+ * @route GET api/users/me
+ * @description Get current user info
+ * @access Public
+ */
+router.get("/me", authMiddleware.loginRequired, userController.getCurrentUser);
 
 module.exports = router;
