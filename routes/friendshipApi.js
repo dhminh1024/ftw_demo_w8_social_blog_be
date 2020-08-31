@@ -30,7 +30,7 @@ router.delete(
   validators.validate([
     param("id").exists().isString().custom(validators.checkObjectId),
   ]),
-  userController.acceptFriendRequest
+  userController.cancelFriendRequest
 );
 
 /**

@@ -1,5 +1,6 @@
 const utilsHelper = require("../helpers/utils.helper");
 const Blog = require("../models/blog");
+const Review = require("../models/review");
 const blogController = {};
 
 blogController.getBlogs = async (req, res, next) => {
@@ -14,7 +15,8 @@ blogController.getBlogs = async (req, res, next) => {
     const blogs = await Blog.find()
       .sort({ createdAt: -1 })
       .skip(offset)
-      .limit(limit);
+      .limit(limit)
+      .populate("author");
 
     return utilsHelper.sendResponse(
       res,
@@ -31,9 +33,10 @@ blogController.getBlogs = async (req, res, next) => {
 
 blogController.getSingleBlog = async (req, res, next) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    let blog = await Blog.findById(req.params.id).populate("author");
     if (!blog) return next(new Error("Blog not found"));
-
+    blog = blog.toJSON();
+    blog.reviews = await Review.find({ blog: blog._id }).populate("user");
     return utilsHelper.sendResponse(res, 200, true, blog, null, null);
   } catch (error) {
     next(error);
@@ -43,6 +46,7 @@ blogController.getSingleBlog = async (req, res, next) => {
 blogController.createNewBlog = async (req, res, next) => {
   try {
     const author = req.userId;
+    console.log("XXXXXXXXXX", req.body);
     const { title, content } = req.body;
 
     const blog = await Blog.create({

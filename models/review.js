@@ -16,7 +16,7 @@ const reviewSchema = Schema({
 });
 
 reviewSchema.statics.calculateReviews = async function (blogId) {
-  const reviewCount = await this.find({ blog: blogId }).count();
+  const reviewCount = await this.find({ blog: blogId }).countDocuments();
   await Blog.findByIdAndUpdate(blogId, { reviewCount: reviewCount });
 };
 
