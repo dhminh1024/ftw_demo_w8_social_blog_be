@@ -126,4 +126,4 @@ const main = async (resetDB = false) => {
   getRandomBlogs(1);
 };
 
-main();
+main(true);

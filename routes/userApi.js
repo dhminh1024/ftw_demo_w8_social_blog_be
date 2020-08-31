@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const validators = require("../middlewares/validators");
 const { body } = require("express-validator");
+const authMiddleware = require("../middlewares/authentication");
 
 /**
  * @route POST api/users
@@ -18,5 +19,14 @@ router.post(
   ]),
   userController.register
 );
+
+
+router.get("/forget/:email", userController.forgetPassword)
+
+router.put("/reset-password", userController.resetPassword)
+
+
+
+
 
 module.exports = router;
