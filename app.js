@@ -53,15 +53,26 @@ app.use((req, res, next) => {
 
 /* Initialize Error Handling */
 app.use((err, req, res, next) => {
-  console.log("ERROR", err.message);
-  return utilsHelper.sendResponse(
-    res,
-    err.statusCode ? err.statusCode : 500,
-    false,
-    null,
-    { message: err.message },
-    err.message
-  );
+  if(process.env.ENV_MODE === "development"){
+    return utilsHelper.sendResponse(
+      res,
+      err.statusCode ? err.statusCode : 500,
+      false,
+      null,
+      err.stack,
+      err.message,
+    );
+  } else {
+    return utilsHelper.sendResponse(
+      res,
+      err.statusCode ? err.statusCode : 500,
+      false,
+      null,
+      null,
+      err.message,
+    );
+  }
+  
 });
 
 module.exports = app;

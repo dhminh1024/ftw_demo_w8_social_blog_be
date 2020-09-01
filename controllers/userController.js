@@ -1,8 +1,7 @@
-const utilsHelper = require("../helpers/utils.helper");
 const User = require("../models/user");
 const Friendship = require("../models/friendship");
 const jwt = require("jsonwebtoken");
-
+const { AppError, catchAsync, sendResponse } = require("../helpers/utils.helper");
 const userController = {};
 userController.register = async (req, res, next) => {
   try {
@@ -17,7 +16,7 @@ userController.register = async (req, res, next) => {
       password,
     });
     const accessToken = await user.generateToken();
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -34,7 +33,7 @@ userController.getCurrentUser = async (req, res, next) => {
   try {
     const userId = req.userId;
     const user = await User.findById(userId);
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -58,7 +57,7 @@ userController.sendFriendRequest = async (req, res, next) => {
         to: toUserId,
         status: "requesting",
       });
-      return utilsHelper.sendResponse(
+      return sendResponse(
         res,
         200,
         true,
@@ -77,7 +76,7 @@ userController.sendFriendRequest = async (req, res, next) => {
           // in case declined or cancelled, we're changing it to requesting
           friendship.status = "requesting";
           await friendship.save();
-          return utilsHelper.sendResponse(
+          return sendResponse(
             res,
             200,
             true,
@@ -107,7 +106,7 @@ userController.acceptFriendRequest = async (req, res, next) => {
     // else
     friendship.status = "accepted";
     await friendship.save();
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -133,7 +132,7 @@ userController.declineFriendRequest = async (req, res, next) => {
 
     friendship.status = "decline";
     await friendship.save();
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -153,7 +152,7 @@ userController.getSentFriendRequestList = async (req, res, next) => {
       from: userId,
       status: "requesting",
     }).populate("to");
-    return utilsHelper.sendResponse(res, 200, true, requestList, null, null);
+    return sendResponse(res, 200, true, requestList, null, null);
   } catch (error) {
     next(error);
   }
@@ -166,7 +165,7 @@ userController.getReceivedFriendRequestList = async (req, res, next) => {
       to: userId,
       status: "requesting",
     }).populate("from");
-    return utilsHelper.sendResponse(res, 200, true, requestList, null, null);
+    return sendResponse(res, 200, true, requestList, null, null);
   } catch (error) {
     next(error);
   }
@@ -192,7 +191,7 @@ userController.getFriendList = async (req, res, next) => {
       }
       return friend;
     });
-    return utilsHelper.sendResponse(res, 200, true, friendList, null, null);
+    return sendResponse(res, 200, true, friendList, null, null);
   } catch (error) {
     next(error);
   }
@@ -211,7 +210,7 @@ userController.cancelFriendRequest = async (req, res, next) => {
 
     friendship.status = "cancel";
     await friendship.save();
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -239,7 +238,7 @@ userController.removeFriendship = async (req, res, next) => {
 
     friendship.status = "removed";
     await friendship.save();
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -262,7 +261,7 @@ userController.forgetPassword = async (req,res,next) => {
     // get user doc from database
     const user = await User.findOne({ email })
     if(!user){
-       return utilsHelper.sendResponse(
+       return sendResponse(
         res,
         200,
         true,
@@ -287,11 +286,11 @@ userController.forgetPassword = async (req,res,next) => {
     console.log(token)
     mailgun.messages().send(data, (error, body) => {
       console.log(body);
-      return next(body)
+      if(error) return next(body)
     });
     
     // send email with token to user email
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -329,4 +328,34 @@ userController.resetPassword = async(req,res,next) => {
     return next(error)
   }
 }
+
+
+userController.testError = catchAsync(async (req,res,next) => {
+  console.log(hahahhaha)
+  return next(new AppError(404, "Account not found"))
+}) 
+userController.updateProfile = catchAsync(async(req,res,next) => {
+    const userId = req.userId;
+    const allows = ["name", "password", "gender"]
+    const user = await User.findOne({_id: userId, isDeleted: false});
+    if(!user){
+      return next(new AppError(404, "Account not found"))
+    };
+
+    allows.forEach(field => {
+      if(req.body[field] !== undefined) {
+        user[field] = req.body[field] 
+      }
+    })
+    await user.save();
+
+    return sendResponse(
+      res,
+      200,
+      true,
+      { user },
+      null,
+      "update current user successful"
+    );
+})
 module.exports = userController;
