@@ -11,6 +11,7 @@ blogController.getBlogs = async (req, res, next) => {
     delete filter.limit
     delete filter.page
     delete filter.sortBy
+    console.log(filter)
     // end
 
     const page = parseInt(req.query.page) || 1;
@@ -18,13 +19,19 @@ blogController.getBlogs = async (req, res, next) => {
     const totalBlogs = await Blog.find(filter).countDocuments();
     const totalPages = Math.ceil(totalBlogs / limit);
     const offset = limit * (page - 1);
-    
+
     // begin  sorting query
-    const { sortBy } = req.query;
-    console.log(sortBy)
+    const sortBy = req.query.sortBy || {};
+    if (!sortBy.createdAt) {
+      sortBy.createdAt = -1  // default sort
+    }
     // end
 
-    const blogs = await Blog.find(filter)
+    // const blogs = await Blog.find(filter)
+    const blogs = await Blog.find(
+      // tags: ["music", "sport"]
+      filter
+    )
       .sort(sortBy)
       .skip(offset)
       .limit(limit)
@@ -35,7 +42,11 @@ blogController.getBlogs = async (req, res, next) => {
       res,
       200,
       true,
-      { blogs, totalPages },
+      { blogs,
+         totalPages,
+          totalResults: totalBlogs,
+          currentPage: page
+         },
       null,
       ""
     );
@@ -59,16 +70,15 @@ blogController.getSingleBlog = async (req, res, next) => {
 blogController.createNewBlog = async (req, res, next) => {
   try {
     const author = req.userId;
-
     // remove un-allowed fields from body
     const allows = ["title", "content", "tags"];
-    for (let key in req.body){
-      if(!allows.includes(key)){
+    for (let key in req.body) {
+      if (!allows.includes(key)) {
         delete req.body[key];
       }
     }
     const blog = await Blog.create({
-      ...req.body, 
+      ...req.body,
       author
     });
 
