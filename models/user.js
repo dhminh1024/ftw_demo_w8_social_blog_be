@@ -10,17 +10,34 @@ const userSchema = Schema({
   password: { type: String, required: true, select: false },
   friendCount: { type: Number, default: 0 },
   isDeleted: { type: Boolean, default: false },
-});
+},
+ {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+}
+);
+
 
 userSchema.plugin(require("./plugins/isDeletedFalse"));
 
+userSchema.methods.toJSON = function(){
+  const user = this.toObject();
+  delete user.password;
+  delete user.__v;
+  delete user.isDeleted;
+  delete user.updatedAt;
+  delete user.createdAt;
+  return user
+}
+
+
 // doc middleware
-userSchema.pre("save", async function(next){
+userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
-  if(this.isModified("password")){
+  if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, salt);
   }
-    next()
+  next()
 });
 // query middleware
 // later hehe

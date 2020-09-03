@@ -9,7 +9,7 @@ utilsHelper.sendResponse = (res, status, success, data, errors, message) => {
   if (data) response.data = data;
   if (errors) response.errors = errors;
   if (message) response.message = message;
-  return res.status(status).json(response);
+  return res.status(status).json(response); // JSON.stringify(response)
 };
 // const error = new Error("some error message")
 // next(new AppError(404,"user not found")) 

@@ -3,6 +3,8 @@ const Friendship = require("../models/friendship");
 const jwt = require("jsonwebtoken");
 const { AppError, catchAsync, sendResponse } = require("../helpers/utils.helper");
 const userController = {};
+
+
 userController.register = async (req, res, next) => {
   try {
     let { name, email, password } = req.body;
